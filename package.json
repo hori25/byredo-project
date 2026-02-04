@@ -1,0 +1,34 @@
+{
+  "name": "byredo-project",
+  "version": "1.0.0",
+  "description": "Byredo Next.js 14 Project",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^7.1.0",
+    "@fortawesome/free-solid-svg-icons": "^7.1.0",
+    "@fortawesome/react-fontawesome": "^3.1.1",
+    "@react-three/drei": "^9.108.3",
+    "@react-three/fiber": "^8.16.8",
+    "@types/node": "^22.14.1",
+    "@types/react": "^19.1.6",
+    "@types/react-dom": "^19.1.6",
+    "gsap": "^3.14.2",
+    "next": "^14.2.35",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "three": "^0.160.1",
+    "typescript": "^5.7.3"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.23",
+    "eslint": "^9.18.0",
+    "eslint-config-next": "^15.1.6",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.0"
+  }
+}

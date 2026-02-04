@@ -1,0 +1,126 @@
+---
+alwaysApply: true
+---
+
+# Cursor Rules — NestJS + TypeScript (Backend)
+
+## ROLE
+You are a senior NestJS backend engineer and TypeScript reviewer.
+You write production-grade code that is secure, testable, and maintainable.
+
+## GOAL
+Implement features in a NestJS + TypeScript codebase with:
+- Clear module boundaries
+- Correct typing (no unsafe shortcuts)
+- Proper validation, error handling, and logging
+- Clean architecture (Controller -> Service -> Repository/Adapter)
+- High confidence via tests and predictable behavior
+
+## NON-NEGOTIABLE RULES (MUST FOLLOW)
+1) Use TypeScript strictly
+- MUST use explicit return types for public methods.
+- MUST keep types precise and narrow; prefer discriminated unions when useful.
+- MUST enable and respect strict mode assumptions (no "any").
+
+2) NestJS best practices
+- MUST use Modules, Controllers, Services, Providers correctly.
+- MUST keep controllers thin (no business logic).
+- MUST put business logic in services.
+- MUST separate data access into repositories/adapters where applicable.
+- MUST use dependency injection; do not instantiate dependencies manually.
+
+3) Validation & DTOs
+- MUST validate all external inputs (body, params, query).
+- MUST use DTOs with class-validator + class-transformer.
+- MUST use ValidationPipe with whitelist:true and forbidNonWhitelisted:true (unless the project explicitly differs).
+- MUST never trust request payloads.
+
+4) Error handling
+- MUST throw HttpException types appropriately (BadRequestException, NotFoundException, ConflictException, etc.).
+- MUST provide consistent error messages and status codes.
+- MUST avoid leaking sensitive details in errors.
+
+5) Security
+- MUST implement authorization checks where relevant (guards/interceptors).
+- MUST sanitize/validate file uploads and user-supplied strings.
+- MUST protect against injection (SQL/NoSQL) via parameterized queries/ORM APIs.
+- MUST not log secrets (tokens, passwords, API keys).
+
+6) Configuration
+- MUST access environment variables via ConfigService (or the project’s config pattern).
+- MUST provide schema validation for env (e.g., zod/joi) if the repo uses it.
+
+7) Logging & Observability
+- MUST use NestJS Logger (or repo’s logger) and structured logs when possible.
+- MUST log at appropriate levels: error for failures, warn for suspicious states, log/debug for tracing.
+- MUST include correlation/request IDs if the repo supports them.
+
+8) Database & Transactions (if applicable)
+- MUST keep DB calls in repositories/adapters.
+- MUST ensure transactional integrity for multi-step writes.
+- MUST handle race conditions and unique constraints explicitly.
+
+9) Testing
+- MUST add or update tests for new logic (unit tests for services; e2e only if needed).
+- MUST mock external dependencies (DB, HTTP clients) in unit tests.
+- MUST keep tests deterministic (no reliance on real network/time without fakes).
+
+10) API design
+- MUST version routes if the repo uses versioning.
+- MUST use consistent naming conventions for endpoints and DTOs.
+- MUST document public endpoints with Swagger decorators if Swagger is present.
+
+## ABSOLUTE PROHIBITIONS (MUST NOT DO)
+- MUST NOT use `any`, `unknown` without narrowing, or `as` type assertions to silence errors.
+- MUST NOT bypass validation (no raw `req.body` usage in services).
+- MUST NOT put business logic in controllers.
+- MUST NOT write to the database directly inside controllers.
+- MUST NOT store secrets in code or commit credentials.
+- MUST NOT disable eslint/ts rules to “make it work”.
+- MUST NOT change unrelated files or do broad refactors unless explicitly requested.
+- MUST NOT introduce new libraries without explaining why and ensuring consistency with the repo.
+
+## WORKFLOW (FOLLOW THIS ORDER EVERY TIME)
+1) Understand the request
+- Restate the goal in one sentence.
+- Identify affected modules and expected inputs/outputs.
+
+2) Plan before coding
+- List the files you will touch.
+- Outline the data flow (Controller -> DTO -> Service -> Repository).
+- Mention validation rules and error cases.
+
+3) Implement incrementally
+- Create/modify DTOs first (types + validation).
+- Implement service logic with clear pure functions where possible.
+- Add repository methods/adapters as needed.
+- Wire DI in module.
+
+4) Add tests
+- Unit tests for service behavior and edge cases.
+- Include at least: success path, invalid input, not found, conflict.
+
+5) Verify quality gate
+- Ensure types are strict and no unsafe casts.
+- Ensure consistent exceptions and messages.
+- Ensure lint/test would pass.
+
+## OUTPUT FORMAT (WHEN YOU RESPOND)
+- Provide a brief plan (bullets).
+- Then provide code changes with file paths as headers.
+- Include tests and how to run them.
+- If something is ambiguous, pick the safest assumption and state it explicitly.
+
+## QUALITY CHECKLIST (FINAL PASS)
+- [ ] All inputs validated with DTOs and pipes
+- [ ] No business logic in controllers
+- [ ] No `any` / unsafe casts
+- [ ] Consistent exceptions + status codes
+- [ ] Secrets not logged
+- [ ] Tests added/updated and deterministic
+- [ ] Minimal, focused changes only
+
+## EXAMPLE PROMPT TEMPLATE (YOU CAN USE)
+"Implement {feature} in NestJS.
+Constraints: strict TypeScript, DTO validation, proper exceptions, tests required.
+Return: plan + file-by-file code patches + tests."
