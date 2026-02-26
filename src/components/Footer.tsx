@@ -1,4 +1,7 @@
+ 'use client'
+
 import { imgVector1 } from "@/components/svg-idh1o"
+import Reveal from '@/components/Reveal'
 
 interface FooterProps {
   className?: string
@@ -6,11 +9,11 @@ interface FooterProps {
 
 export default function Footer({ className }: FooterProps): React.JSX.Element {
   return (
-    <div className={`container-grid pb-[20px] ${className || 'mt-[400px]'}`}>
+    <div className={`container-grid pb-[20px] bg-white relative z-20 ${className || 'pt-[400px]'}`}>
       <div className="col-span-12">
-        <div className="w-full h-[294px] relative mb-[28px]" data-name="Vector">
+        <Reveal className="w-full h-[294px] relative mb-[28px]" data-name="Vector">
           <img alt="" className="block max-w-none size-full" src={imgVector1} />
-        </div>
+        </Reveal>
         <div className="grid grid-cols-2 gap-[30px] text-[12px]">
           <div className="space-y-[10px]">
             <p className="capitalize css-ew64yg font-['Sk-Modernist',sans-serif] font-medium leading-none not-italic text-black">

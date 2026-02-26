@@ -2,16 +2,31 @@
 
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
+import type { User } from '@supabase/supabase-js'
 import { imgVector } from "@/components/svg-idh1o"
+import AuthModal, { LoginFormValues, SignupFormValues } from '@/components/AuthModal'
+import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 
 interface HeaderProps {
   showPurchaseButton?: boolean
   onPurchaseClick?: () => void
+  onLoginSubmit?: (values: LoginFormValues) => Promise<void> | void
+  onSignupSubmit?: (values: SignupFormValues) => Promise<void> | void
 }
 
-export default function Header({ showPurchaseButton = false, onPurchaseClick }: HeaderProps): React.JSX.Element {
+export default function Header({
+  showPurchaseButton = false,
+  onPurchaseClick,
+  onLoginSubmit,
+  onSignupSubmit,
+}: HeaderProps): React.JSX.Element {
+  const [supabase] = useState(() => createSupabaseBrowserClient())
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
+  const [authModalView, setAuthModalView] = useState<'login' | 'signup'>('signup')
+  const [authUser, setAuthUser] = useState<User | null>(null)
 
   // Trigger animation when showPurchaseButton changes
   useEffect(() => {
@@ -22,16 +37,122 @@ export default function Header({ showPurchaseButton = false, onPurchaseClick }: 
     }
   }, [showPurchaseButton])
 
+  // Track scroll position
+  useEffect(() => {
+    const handleScroll = (): void => {
+      const scrollPosition = window.scrollY
+      setIsScrolled(scrollPosition > 50)
+    }
+
+    // Set initial state
+    handleScroll()
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  useEffect(() => {
+    let isMounted = true
+
+    const loadSession = async (): Promise<void> => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      if (isMounted) {
+        setAuthUser(session?.user ?? null)
+      }
+    }
+
+    void loadSession()
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthUser(session?.user ?? null)
+    })
+
+    return () => {
+      isMounted = false
+      subscription.unsubscribe()
+    }
+  }, [supabase])
+
+  const openAuthModal = (view: 'login' | 'signup'): void => {
+    setAuthModalView(view)
+    setIsAuthModalOpen(true)
+    setIsMenuOpen(false)
+  }
+
+  const handleLogin = async (values: LoginFormValues): Promise<void> => {
+    if (onLoginSubmit) {
+      await onLoginSubmit(values)
+      setIsAuthModalOpen(false)
+      return
+    }
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email: values.email,
+      password: values.password,
+    })
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    setIsAuthModalOpen(false)
+  }
+
+  const handleSignup = async (values: SignupFormValues): Promise<void> => {
+    if (onSignupSubmit) {
+      await onSignupSubmit(values)
+      setIsAuthModalOpen(false)
+      return
+    }
+
+    const { error } = await supabase.auth.signUp({
+      email: values.email,
+      password: values.password,
+      options: {
+        data: {
+          name: values.name,
+          full_name: values.name,
+        },
+      },
+    })
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    setIsAuthModalOpen(false)
+  }
+
+  const handleLogout = async (): Promise<void> => {
+    const { error } = await supabase.auth.signOut()
+    if (error) {
+      console.error('Failed to sign out:', error.message)
+      return
+    }
+
+    setIsMenuOpen(false)
+  }
+
   return (
-    <div 
-      className="fixed bg-white h-[48px] md:h-[48px] left-0 right-0 overflow-clip top-0 w-full z-50 backdrop-blur-sm bg-opacity-95 border-b border-black/5 transition-all duration-500"
-      style={{
-        transform: isAnimating ? 'translateY(-48px)' : 'translateY(0)',
-        animation: isAnimating ? 'headerSlideDown 0.5s ease-out forwards' : 'none'
-      }}
-      data-name="header"
-    >
-      <div className="container-grid h-full relative">
+    <>
+      <div 
+        className={`fixed h-[48px] md:h-[48px] left-0 right-0 overflow-clip top-0 w-full z-50 transition-all duration-500 ${
+          isScrolled 
+            ? 'bg-white/95 backdrop-blur-md border-b border-black/10' 
+            : 'bg-transparent'
+        }`}
+        style={{
+          transform: isAnimating ? 'translateY(-48px)' : 'translateY(0)',
+          animation: isAnimating ? 'headerSlideDown 0.5s ease-out forwards' : 'none'
+        }}
+        data-name="header"
+      >
+        <div className="container-grid h-full relative">
         {/* Logo */}
         <div className="absolute h-[18px] md:h-[21px] left-1/2 top-[15px] md:top-[14px] translate-x-[-50%] w-[85px] md:w-[100px]" data-name="Vector">
           <img alt="" className="block max-w-none size-full" src={imgVector} />
@@ -61,12 +182,32 @@ export default function Header({ showPurchaseButton = false, onPurchaseClick }: 
             </button>
           ) : (
             <>
-              <p className="absolute css-ew64yg font-['Sk-Modernist',sans-serif] font-normal leading-[9px] right-[10px] not-italic text-[11px] text-black top-[20px] cursor-pointer hover:opacity-60 transition-opacity uppercase tracking-normal whitespace-nowrap">
-                join
-              </p>
-              <p className="absolute css-ew64yg font-['Sk-Modernist',sans-serif] font-normal leading-[9px] right-[59px] not-italic text-[11px] text-black top-[20px] cursor-pointer hover:opacity-60 transition-opacity uppercase tracking-normal whitespace-nowrap">
-                login
-              </p>
+              {authUser ? (
+                <button
+                  type="button"
+                  onClick={() => void handleLogout()}
+                  className="absolute border-0 bg-transparent p-0 css-ew64yg font-['Sk-Modernist',sans-serif] font-normal leading-[9px] right-[10px] not-italic text-[11px] text-black top-[20px] cursor-pointer hover:opacity-60 transition-opacity uppercase tracking-normal whitespace-nowrap"
+                >
+                  logout
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => openAuthModal('signup')}
+                    className="absolute border-0 bg-transparent p-0 css-ew64yg font-['Sk-Modernist',sans-serif] font-normal leading-[9px] right-[10px] not-italic text-[11px] text-black top-[20px] cursor-pointer hover:opacity-60 transition-opacity uppercase tracking-normal whitespace-nowrap"
+                  >
+                    join
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openAuthModal('login')}
+                    className="absolute border-0 bg-transparent p-0 css-ew64yg font-['Sk-Modernist',sans-serif] font-normal leading-[9px] right-[59px] not-italic text-[11px] text-black top-[20px] cursor-pointer hover:opacity-60 transition-opacity uppercase tracking-normal whitespace-nowrap"
+                  >
+                    login
+                  </button>
+                </>
+              )}
               <p className="absolute css-ew64yg font-['Sk-Modernist',sans-serif] font-normal leading-[9px] right-[115px] not-italic text-[11px] text-black top-[20px] cursor-pointer hover:opacity-60 transition-opacity uppercase tracking-normal whitespace-nowrap">
                 mypage
               </p>
@@ -105,15 +246,44 @@ export default function Header({ showPurchaseButton = false, onPurchaseClick }: 
             <p className="px-6 py-3 font-['Sk-Modernist',sans-serif] font-normal text-[13px] text-black hover:bg-gray-50 transition-colors cursor-pointer uppercase tracking-normal">
               mypage
             </p>
-            <p className="px-6 py-3 font-['Sk-Modernist',sans-serif] font-normal text-[13px] text-black hover:bg-gray-50 transition-colors cursor-pointer uppercase tracking-normal">
-              login
-            </p>
-            <p className="px-6 py-3 font-['Sk-Modernist',sans-serif] font-normal text-[13px] text-black hover:bg-gray-50 transition-colors cursor-pointer uppercase tracking-normal">
-              join
-            </p>
+            {authUser ? (
+              <button
+                type="button"
+                onClick={() => void handleLogout()}
+                className="border-0 bg-transparent px-6 py-3 text-left font-['Sk-Modernist',sans-serif] font-normal text-[13px] text-black hover:bg-gray-50 transition-colors cursor-pointer uppercase tracking-normal"
+              >
+                logout
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => openAuthModal('login')}
+                  className="border-0 bg-transparent px-6 py-3 text-left font-['Sk-Modernist',sans-serif] font-normal text-[13px] text-black hover:bg-gray-50 transition-colors cursor-pointer uppercase tracking-normal"
+                >
+                  login
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openAuthModal('signup')}
+                  className="border-0 bg-transparent px-6 py-3 text-left font-['Sk-Modernist',sans-serif] font-normal text-[13px] text-black hover:bg-gray-50 transition-colors cursor-pointer uppercase tracking-normal"
+                >
+                  join
+                </button>
+              </>
+            )}
           </nav>
         </div>
       </div>
-    </div>
+      </div>
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        initialView={authModalView}
+        onClose={() => setIsAuthModalOpen(false)}
+        onLoginSubmit={handleLogin}
+        onSignupSubmit={handleSignup}
+      />
+    </>
   )
 }

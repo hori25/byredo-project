@@ -12,7 +12,7 @@ interface ModelProps {
   scrollProgress?: number
 }
 
-function Model({ modelPath, autoRotate = true, scrollProgress = 0 }: ModelProps): JSX.Element {
+function Model({ modelPath, autoRotate = true, scrollProgress = 0 }: ModelProps): React.JSX.Element {
   const groupRef = useRef<THREE.Group>(null)
   const capRef = useRef<THREE.Object3D | null>(null)
   const initialCapY = useRef<number | null>(null)
@@ -187,7 +187,7 @@ function Model({ modelPath, autoRotate = true, scrollProgress = 0 }: ModelProps)
 }
 
 // Shadow catcher plane - 병보다 조금 아래
-function ShadowPlane(): JSX.Element {
+function ShadowPlane(): React.JSX.Element {
   return (
     <mesh 
       receiveShadow 
@@ -201,7 +201,7 @@ function ShadowPlane(): JSX.Element {
 }
 
 // Key Light with target
-function KeyLightWithTarget(): JSX.Element {
+function KeyLightWithTarget(): React.JSX.Element {
   const lightRef = useRef<THREE.DirectionalLight>(null)
   const targetRef = useRef<THREE.Object3D>(null)
   
@@ -233,7 +233,7 @@ function KeyLightWithTarget(): JSX.Element {
 }
 
 // HDRI Environment loader
-function HDRIEnvironment(): JSX.Element {
+function HDRIEnvironment(): React.JSX.Element | null {
   const { scene } = useThree()
   
   useEffect(() => {
@@ -259,7 +259,7 @@ interface CameraControllerProps {
   scrollProgress: number
 }
 
-function CameraController({ scrollProgress }: CameraControllerProps): JSX.Element {
+function CameraController({ scrollProgress }: CameraControllerProps): React.JSX.Element | null {
   const { camera } = useThree()
   const smoothedProgress = useRef(scrollProgress)
   
@@ -319,7 +319,7 @@ interface Model3DViewerProps {
   scrollProgress?: number
 }
 
-function LoadingFallback(): JSX.Element {
+function LoadingFallback(): React.JSX.Element {
   return (
     <mesh>
       <boxGeometry args={[1, 1, 1]} />
@@ -332,7 +332,7 @@ export default function Model3DViewer({
   modelPath = '/byredo.glb',
   currentImageIndex = 0,
   scrollProgress = 0
-}: Model3DViewerProps): JSX.Element {
+}: Model3DViewerProps): React.JSX.Element {
   const hasScrollAnimation = scrollProgress !== undefined
   
   return (
@@ -344,13 +344,12 @@ export default function Model3DViewer({
           alpha: true,
           powerPreference: 'high-performance',
           toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.5, // 더 밝게
-          outputEncoding: 3001 // sRGBEncoding (Color Space: sRGB)
+          toneMappingExposure: 1.5 // 더 밝게
         }}
         dpr={[1, 2]}
         onCreated={({ gl }) => {
           gl.setClearColor('#ececec', 1)
-          gl.physicallyCorrectLights = true
+          gl.outputColorSpace = THREE.SRGBColorSpace
           gl.shadowMap.enabled = true
           gl.shadowMap.type = THREE.PCFSoftShadowMap
         }}

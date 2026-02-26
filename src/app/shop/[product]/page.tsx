@@ -7,6 +7,8 @@ import dynamic from 'next/dynamic'
 
 import Footer from '@/components/Footer'
 import RelatedProducts from '@/components/RelatedProducts'
+import CheckoutModal from '@/features/checkout/components/CheckoutModal'
+import { getShopProductBySlug, type ShopProduct } from '@/features/shop/catalog'
 
 // Dynamically import 3D viewer to avoid SSR issues
 const Model3DViewer = dynamic(() => import('@/components/Model3DViewer'), {
@@ -56,9 +58,9 @@ const stepContents = [
 export default function ProductPage(): React.JSX.Element {
   const params = useParams()
   const productId = params.product ? decodeURIComponent(params.product as string) : 'rouge-chaotique'
-  
+ 
   const [wishlist, setWishlist] = useState(false)
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
   
   // Pin Effect States
   const sectionRef = useRef<HTMLDivElement>(null)
@@ -101,14 +103,27 @@ export default function ProductPage(): React.JSX.Element {
   }, [])
 
   const handlePurchase = (): void => {
-    console.log('Purchase clicked')
-    // Add purchase logic here
+    setIsCheckoutOpen(true)
+  }
+
+  const checkoutProduct: ShopProduct = getShopProductBySlug(productId) ?? {
+    id: 0,
+    slug: productId,
+    name: stepContents[0]?.title ?? 'ROUGE CHAOTIQUE',
+    category: 'EAU DE PARFUM',
+    price: stepContents[0]?.price ?? 280,
+    currency: 'EUR',
+    priceLabel: `${stepContents[0]?.price ?? 280} €`,
+    size: '100 ml',
+    sizeInfo: '',
+    image: '/images/products/shop_1.png',
+    tryItFirst: false,
   }
 
   return (
     <div className="relative w-full">
       {/* Header - Fixed at top */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-white">
+      <div className="fixed top-0 left-0 right-0 z-50">
         <Header 
           showPurchaseButton={currentStep > 0} 
           onPurchaseClick={handlePurchase}
@@ -181,7 +196,7 @@ export default function ProductPage(): React.JSX.Element {
                       className="bg-black h-[48px] w-full hover:bg-gray-800 transition-colors cursor-pointer"
                     >
                       <div className="flex flex-col font-['Inter',sans-serif] font-medium justify-center leading-[0] not-italic text-[11px] text-center text-white tracking-[2.2px] uppercase">
-                        <p className="css-4hzbpn leading-[16.5px]">ADD TO CART</p>
+                        <p className="css-4hzbpn leading-[16.5px]">PURCHASE</p>
                       </div>
                     </button>
                   </>
@@ -233,6 +248,12 @@ export default function ProductPage(): React.JSX.Element {
       
       {/* Footer */}
       <Footer className="mt-[0px]" />
+
+      <CheckoutModal
+        isOpen={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        product={checkoutProduct}
+      />
     </div>
   )
 }

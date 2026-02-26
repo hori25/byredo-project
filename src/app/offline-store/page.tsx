@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { motion } from 'framer-motion'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Header from '@/components/Header'
@@ -99,12 +100,9 @@ export default function OfflineStorePage(): React.JSX.Element {
   return (
     <div className="relative w-full bg-white" style={{ overflowX: 'hidden' }}>
       {/* Header - Fixed positioned */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-white">
+      <div className="fixed top-0 left-0 right-0 z-50">
         <Header />
       </div>
-      
-      {/* Spacer for header */}
-      <div style={{ height: '48px' }} />
       
       {/* Pinned Section with Horizontal Scroll */}
       <div ref={sectionRef} className="relative w-full bg-white" style={{ height: '100vh', overflowX: 'hidden' }}>
@@ -124,14 +122,27 @@ export default function OfflineStorePage(): React.JSX.Element {
                 flexShrink: 0
               }}
             >
-              {/* Store Image */}
-              <div className="w-[500px] h-[500px] relative overflow-hidden bg-white mb-[20px]">
-                <img
-                  alt={store.title}
-                  className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
-                  src={store.image}
-                />
-              </div>
+              {/* Store Image with Animation */}
+              <motion.div
+                className="w-[500px] h-[500px] relative overflow-hidden bg-white mb-[20px]"
+                initial={{ opacity: 0, y: 40, clipPath: 'inset(0% 0% 100% 0%)' }}
+                animate={{ opacity: 1, y: 0, clipPath: 'inset(0% 0% 0% 0%)' }}
+                transition={{
+                  duration: 0.6,
+                  delay: 0.3 + (index * 0.1), // 더 빠르게
+                  ease: [0.25, 0.1, 0.25, 1]
+                }}
+                style={{ willChange: 'transform, opacity, clip-path' }}
+              >
+                <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
+                  <div className="absolute bg-[#e3e3e3] inset-0" />
+                  <img
+                    alt={store.title}
+                    className="absolute max-w-none object-cover size-full transition-transform duration-500 ease-out group-hover:scale-110"
+                    src={store.image}
+                  />
+                </div>
+              </motion.div>
 
               {/* Store Title */}
               <p className="font-['Sk-Modernist',sans-serif] font-bold text-[22px] text-black tracking-[1px] uppercase leading-[22px] mb-[8px]">
