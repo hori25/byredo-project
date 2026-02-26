@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   description: 'Byredo - Premium Fragrance & Beauty',
   verification: {
     google: 'fF4QcooahxBJTeQINGeZsUViGDa3OiCIv9yX0hKBELk',
+    other: {
+      'naver-site-verification': '349c111aea08dbddc4b9d640b16a07c4e11dfe0e',
+    },
   },
 }
 
