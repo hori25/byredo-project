@@ -9,6 +9,9 @@ import { PageTransition } from '@/components/PageTransition'
 export const metadata: Metadata = {
   title: 'Byredo',
   description: 'Byredo - Premium Fragrance & Beauty',
+  verification: {
+    google: 'fF4QcooahxBJTeQINGeZsUViGDa3OiCIv9yX0hKBELk',
+  },
 }
 
 export default function RootLayout({

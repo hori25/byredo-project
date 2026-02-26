@@ -6,12 +6,16 @@ import {
   formatAdminDate,
   shortAdminId,
 } from '@/features/admin/components/AdminDataTable'
+import { AdminPaymentsAutoRefresh } from '@/features/admin/payments/components/AdminPaymentsAutoRefresh'
 import { listPayments } from '@/features/payments/server/payments.repository'
+
+export const dynamic = 'force-dynamic'
 
 export default async function AdminPaymentsPage() {
   const payments = await listPayments()
   return (
     <AdminShell title="결제 관리" description="payments 테이블 데이터를 조회하는 관리자 전용 화면입니다.">
+      <AdminPaymentsAutoRefresh />
       <AdminPageSection title="결제 데이터 테이블" description="최근 생성 순으로 20개 조회">
         <AdminDataTable
           rows={payments.map((row) => ({

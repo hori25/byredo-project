@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import type { ShopProduct } from '@/features/shop/catalog'
 import { formatShopCurrency } from '@/features/shop/catalog'
 import CheckoutOrderSummary from '@/features/checkout/components/CheckoutOrderSummary'
 import CheckoutQuantityControl from '@/features/checkout/components/CheckoutQuantityControl'
 import { buildPaymentPreparationPayload, calculateOrderTotal } from '@/features/checkout/lib/checkout'
+import { useTossPayment } from '@/features/checkout/hooks/useTossPayment'
 
 type CheckoutModalProps = {
   isOpen: boolean
@@ -22,6 +23,7 @@ export default function CheckoutModal({
   product,
 }: CheckoutModalProps): React.JSX.Element | null {
   const [quantity, setQuantity] = useState(1)
+  const { requestPayment, isRequesting, error, clearError } = useTossPayment()
 
   useEffect(() => {
     if (!isOpen) return
@@ -41,8 +43,11 @@ export default function CheckoutModal({
   }, [isOpen, onClose])
 
   useEffect(() => {
-    if (isOpen) setQuantity(1)
-  }, [isOpen, product.slug])
+    if (isOpen) {
+      setQuantity(1)
+      clearError()
+    }
+  }, [isOpen, product.slug, clearError])
 
   const lineItems = useMemo(() => [{ product, quantity }], [product, quantity])
   const totalAmount = calculateOrderTotal(lineItems)
@@ -50,6 +55,15 @@ export default function CheckoutModal({
     orderId: `draft-${product.slug}`,
     items: lineItems,
   })
+
+  const handlePayment = useCallback(async (): Promise<void> => {
+    const orderId = `byredo-${product.slug}-${Date.now()}`
+    await requestPayment({
+      amountEUR: totalAmount,
+      orderId,
+      orderName: product.name.slice(0, 100),
+    })
+  }, [product.slug, product.name, totalAmount, requestPayment])
 
   if (!isOpen) return null
 
@@ -125,7 +139,7 @@ export default function CheckoutModal({
               <div>
                 <p className="text-[10px] uppercase tracking-[2px] text-black/60">Order Review</p>
                 <p className="mt-2 text-xs uppercase tracking-[1.4px] text-black/55">
-                  Payment integration will be connected later.
+                  Review your order and proceed to payment.
                 </p>
               </div>
             </div>
@@ -135,19 +149,24 @@ export default function CheckoutModal({
 
               <details className="border border-black/10 bg-[#fafafa] p-4">
                 <summary className="cursor-pointer text-[10px] uppercase tracking-[1.6px] text-black/60">
-                  Draft Payment Payload
+                  Order Details
                 </summary>
                 <pre className="mt-3 max-h-[160px] overflow-auto whitespace-pre-wrap text-[10px] leading-5 text-black/75">
 {JSON.stringify(paymentDraft, null, 2)}
                 </pre>
               </details>
 
+              {error && (
+                <p className="text-[10px] uppercase tracking-[1.4px] text-red-600">{error}</p>
+              )}
+
               <button
                 type="button"
-                disabled
-                className="h-12 w-full cursor-not-allowed bg-black text-[11px] font-medium uppercase tracking-[2.2px] text-white opacity-70"
+                onClick={() => { void handlePayment() }}
+                disabled={isRequesting}
+                className="h-12 w-full bg-black text-[11px] font-medium uppercase tracking-[2.2px] text-white transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                Payment Coming Soon
+                {isRequesting ? 'Processing...' : 'Payment'}
               </button>
             </div>
           </section>

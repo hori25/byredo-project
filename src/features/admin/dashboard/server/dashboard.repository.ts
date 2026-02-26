@@ -11,10 +11,12 @@ export type DashboardProduct = {
 export type DashboardOrder = {
   id: string
   created_at: string
-  user_id: string
-  product_id: string
+  user_id: string | null
+  product_id: string | null
+  product_name: string | null
   quantity: number
   total_amount: number
+  toss_order_id: string | null
 }
 
 export type DashboardPayment = {
@@ -60,7 +62,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
         .limit(8),
       supabase
         .from('orders')
-        .select('id, created_at, user_id, product_id, quantity, total_amount')
+        .select('id, created_at, user_id, product_id, product_name, quantity, total_amount, toss_order_id')
         .order('created_at', { ascending: false })
         .limit(8),
       supabase

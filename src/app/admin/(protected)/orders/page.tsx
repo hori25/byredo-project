@@ -16,19 +16,19 @@ export default async function AdminOrdersPage() {
         <AdminDataTable
           rows={orders.map((row) => ({
             id: shortAdminId(row.id),
-            user_id: shortAdminId(row.user_id),
-            product_id: shortAdminId(row.product_id),
+            product_name: row.product_name ?? shortAdminId(row.product_id) ?? '-',
             quantity: String(row.quantity ?? '-'),
             total_amount: formatAdminCurrency(row.total_amount),
+            toss_order_id: shortAdminId(row.toss_order_id),
             created_at: formatAdminDate(row.created_at),
           }))}
           emptyMessage="주문 데이터가 없습니다."
           columns={[
             { key: 'id', header: '주문ID' },
-            { key: 'user_id', header: '사용자' },
-            { key: 'product_id', header: '상품' },
+            { key: 'product_name', header: '상품' },
             { key: 'quantity', header: '수량' },
             { key: 'total_amount', header: '총액' },
+            { key: 'toss_order_id', header: '토스 주문ID' },
             { key: 'created_at', header: '생성일' },
           ]}
         />

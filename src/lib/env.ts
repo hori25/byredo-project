@@ -19,4 +19,10 @@ export const env = {
       .split(',')
       .map((email) => email.trim().toLowerCase())
       .filter(Boolean),
+  // TossPayments — client key is inlined by Next.js for browser bundles
+  tossClientKey: () =>
+    requireEnv(process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY, 'NEXT_PUBLIC_TOSS_CLIENT_KEY'),
+  // Secret key must only be used in server-side code (Server Actions / API Routes)
+  tossSecretKey: () =>
+    requireEnv(process.env.TOSS_SECRET_KEY, 'TOSS_SECRET_KEY'),
 }

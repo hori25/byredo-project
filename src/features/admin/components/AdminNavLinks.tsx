@@ -4,6 +4,7 @@ import {
   faChartLine,
   faUsers,
   faBox,
+  faClipboardList,
   faCreditCard,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -14,6 +15,7 @@ const navItems: Array<{ href: string; label: string; subtitle?: string; icon: ty
   { href: '/admin/dashboard', label: '대시보드', subtitle: 'Admin panel', icon: faChartLine },
   { href: '/admin/users', label: '사용자 관리', icon: faUsers },
   { href: '/admin/products', label: '상품 관리', icon: faBox },
+  { href: '/admin/orders', label: '주문 관리', icon: faClipboardList },
   { href: '/admin/payments', label: '결제 관리', icon: faCreditCard },
 ]
 
