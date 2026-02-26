@@ -66,7 +66,7 @@ export function PageTransition({ children }: PageTransitionProps): React.JSX.Ele
   const [isAnimating, setIsAnimating] = useState(false)
   const isFirstRender = useRef(true)
 
-  useEffect((): void => {
+  useEffect(() => {
     if (isAdminRoute) {
       setIsAnimating(false)
       return
